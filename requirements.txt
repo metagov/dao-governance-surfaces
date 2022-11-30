@@ -1,0 +1,11 @@
+airtable
+argh
+jupyter
+matplotlib
+networkx
+pandas
+requests
+scikit-learn
+scipy
+seaborn
+validators
