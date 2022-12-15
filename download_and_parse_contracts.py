@@ -1,34 +1,40 @@
 import os
 import re
-import ast
 import shutil
 import argh
 import pandas as pd
 import logging
 
-from metagov.githubscrape import download_repo, construct_file_url
-from metagov.contractmodel import parse_contract_file
+from dgs import TMPDIR
+from dgs.github import download_repo, construct_file_url
+from dgs.models import parse_contract_file
+from dgs.utils import ast_eval
 
-CWD = os.path.join(os.path.dirname(__file__))
-TMPDIR = os.path.join(CWD, 'tmp')
 
 # The following default values can be added to or overridden
 EXCLUDE_DIRS = ['lib', 'libs', 'libraries', 'test', 'tests', 'test-helpers', 'testHelpers', 'example', 'examples', 'migration']
 EXCLUDE_FILES = ['SafeMath.sol', 'lib.sol', 'Migrations.sol']
 EXCLUDE_FILE_PATTERNS = [r'I?ERC\d+\.sol', r'I?EIP\d+\.sol', r'.*\.t\.sol']
 
+REPO_TABLE_PATH = 'repos.csv'
+
 
 def parse_repo(projectDir, repoDict, projectLabel='', useDefaults=True, clean=False,
                excludeFiles=None, includeFiles=None, excludeDirs=None, includeDirs=None):
-    """Walk through contracts and parsethe relevant files
+    """Walk through contracts and parse the relevant files
     
-    Explicitly only attempts to parse .sol files"""
+    Only attempts to parse .sol files
+    """
     
-    objectsFile = os.path.join(TMPDIR, f'contract_objects_{projectLabel}.csv')
-    parametersFile = os.path.join(TMPDIR, f'contract_parameters_{projectLabel}.csv')
+    if projectLabel: 
+        projectLabel = '_' + projectLabel
+
+    #contractsFile = os.path.join(TMPDIR, f'contracts{projectLabel}.csv')
+    objectsFile = os.path.join(TMPDIR, f'contract_objects{projectLabel}.csv')
+    parametersFile = os.path.join(TMPDIR, f'contract_parameters{projectLabel}.csv')
     
     if os.path.isfile(objectsFile) and os.path.isfile(parametersFile):
-        print(f"Keeping previously parsed results for {projectDir}")
+        print(f"Keeping previously parsed results for {projectLabel}")
         return
     
     if excludeFiles is None:
@@ -55,6 +61,7 @@ def parse_repo(projectDir, repoDict, projectLabel='', useDefaults=True, clean=Fa
     errorFiles = []
     fileCount = 0
 
+    #df_contracts = pd.DataFrame()
     df_objects = pd.DataFrame()
     df_parameters = pd.DataFrame()
 
@@ -63,13 +70,13 @@ def parse_repo(projectDir, repoDict, projectLabel='', useDefaults=True, clean=Fa
         subdir = root.split(projectDir)[-1]
         logging.info(f"Parsing {subdir}...")
         
-        # Filter dirnames
+        # Filter directories by name
         if len(includeDirs) > 0:
             dirnames[:] = [d for d in dirnames if d in includeDirs]
         else:
             dirnames[:] = [d for d in dirnames if d not in excludeDirs]
 
-        # Filter filenames
+        # Filter files by name
         if len(includeFiles) > 0:
             filenames = [f for f in filenames if f in includeFiles]
         else:
@@ -110,31 +117,25 @@ def parse_repo(projectDir, repoDict, projectLabel='', useDefaults=True, clean=Fa
             
     if clean:
         shutil.rmtree(projectDir)
-            
-
-def load_list(s):
-    try:
-        l = ast.literal_eval(s)
-    except (ValueError, SyntaxError):
-        l = s
-    return l
 
 
 def import_contracts(csv):
+    """Import configuration data about which contracts to parse from local file"""
+
     df_contracts = pd.read_csv(csv)
     df_contracts.fillna('', inplace=True)
     df_contracts.drop(columns=['url', 'notes'], inplace=True)
 
     for col in ['excludeDirs', 'includeDirs', 'excludeFiles', 'includeFiles']:
-        df_contracts[col] = df_contracts[col].apply(load_list)
+        df_contracts[col] = df_contracts[col].apply(ast_eval)
     
     return df_contracts
 
 
 def download_and_parse(githubURL, subdir, label='', kwargs={}):
+    """Download and parse a GitHub repository from a URL"""
     
     repoDir, repoDict = download_repo(githubURL, subdir=subdir)
-    
     assert os.path.isdir(repoDir), "could not download/unzip file as specified"
 
     if label == '':
@@ -143,8 +144,7 @@ def download_and_parse(githubURL, subdir, label='', kwargs={}):
     
 
 def download_and_parse_all():
-    csv = os.path.join(CWD, 'repos.csv')
-    df_contracts = import_contracts(csv)
+    df_contracts = import_contracts(REPO_TABLE_PATH)
     
     for i, row in df_contracts.iterrows():
         print(f"\n============ {row['project']} ============\n")
@@ -156,7 +156,7 @@ def download_and_parse_all():
         try:
             download_and_parse(row['repoURL'], row['subdir'], label=row['project'], kwargs=kwargs)
         except AssertionError as e:
-            print(e)
+            logging.exception(e)
 
 
 def main(url):

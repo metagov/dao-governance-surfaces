@@ -4,6 +4,7 @@ jupyter
 matplotlib
 networkx
 pandas
+pytest
 requests
 scikit-learn
 scipy
