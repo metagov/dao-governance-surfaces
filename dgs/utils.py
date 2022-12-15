@@ -1,10 +1,22 @@
 import ast
 import pandas as pd
+from pandas.core.series import Series
 from sklearn.preprocessing import MultiLabelBinarizer
+
+import logging
 
 
 def ast_eval(s, alt_fcn=None):
-    """Wrapper around ast.parse() to catch exceptions"""
+    """Evaluate strings as their properly-formated python AST equivalent,
+    
+    Wrapper around ast.literal_eval() to catch exceptions and return the 
+    original value if there is an error
+    
+    Notes:
+    -   Lists with commas but no brackets are parsed as tuples
+    -   Space-delimited lists with brackets are not parsed correctly
+    """
+
     try:
         result = ast.literal_eval(s)
     except:
@@ -19,34 +31,49 @@ def ast_eval(s, alt_fcn=None):
     return result
 
 
-def get_unique_col_values(df, col):
-    """Get alphabetized list of unique values in a column of single- or multi-select options.
-    Useful """
+def load_result_from_file(path: str, csv_kwargs: dict = None, list_cols: list[str] = None) -> pd.DataFrame:
+    """Load contract, object, or parameter data from CSV file"""
 
-    # Convert all values in column to lists
-    df[col] = df[col].apply(lambda s: ast_eval(s, alt_fcn=lambda s: [x.strip() for x in str(s).split(',')]))
-    df[col] = df[col].apply(lambda d: d if isinstance(d, list) else [])
+    if csv_kwargs is None:
+        csv_kwargs = {}
+    if list_cols is None:
+        list_cols = ['line_numbers', 'inheritance', 'modifiers', 'values', 'parameters']
 
-    # One-hot encode column of lists
-    mlb = MultiLabelBinarizer(sparse_output=True)
-    df_onehot = pd.DataFrame.sparse.from_spmatrix(
-        mlb.fit_transform(df[col]),
-        index=df.index,
-        columns=mlb.classes_)
+    df = pd.read_csv(path, **csv_kwargs) # TODO: figure out whether to include index col
 
-    # Get count for each unique item
-    df_sum = pd.DataFrame(df_onehot.sum()).sort_values(0, axis=0, ascending=False).transpose()
+    # Convert columns to list where necessary
+    for col in list(set(df.columns).intersection(list_cols)):
+        df[col] = df[col].apply(lambda s: ast_eval(s))
+        df[col] = df[col].apply(lambda d: d if isinstance(d, list) else [])
 
-    # Print alphabetized list of unique values
-    for i, row in df_sum.iterrows():
-        for item in sorted(list(row.index), key=lambda s: (s.lower(), s)):
-            print(item)
+    return df
 
-    return sorted(list(row.index))
+
+def count_unique_values(col: Series) -> Series:
+    """Return counts of each unique value in a column containing lists"""
+    
+    try:
+        # One-hot encode column of lists
+        mlb = MultiLabelBinarizer(sparse_output=True)
+        df_onehot = pd.DataFrame.sparse.from_spmatrix(
+            mlb.fit_transform(col),
+            index=col.index,
+            columns=mlb.classes_)
+
+        # Get count for each unique item
+        counts = df_onehot.sum()
+        counts.name = 'count'
+
+    except TypeError:
+        logging.exception('Make sure there are no null values in the column (use empty list instead)')
+        raise
+
+    return counts
 
 
 def print_groupby(gb):
     """Print pandas groupby object"""
+
     for key, item in gb:
         print(key)
         print(gb.get_group(key), "\n")
