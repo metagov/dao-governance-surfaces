@@ -1,9 +1,12 @@
 import os
 import sys
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 sys.path.append("solidity-parser")
 
-if not os.path.isdir('tmp'):
-    os.mkdir('tmp')
-
 TMPDIR = 'tmp'
-DATADIR = 'data'
+
+if not os.path.isdir(TMPDIR):
+    os.mkdir(TMPDIR)
