@@ -10,11 +10,12 @@ from typing import Any
 from solidity_parser import parser
 
 from dgs import TMPDIR
-from dgs.contractcomments import add_docstring_comments, add_inline_comments, remove_duplicate_comments_in_parameters
-from dgs.contractkeywords import find_keywords_in_obj, find_topics_in_obj
+from dgs.comments import add_docstring_comments, add_inline_comments, remove_duplicate_comments_in_parameters
+from dgs.keywords import find_keywords_in_obj, find_topics_in_obj
 
 ERRORMSG = 'error: could not parse'
 IGNORE_CONTRACTS = ['SafeMath']
+
 
 # =============================================================================
 # Define data model based on solidity_parser AST

@@ -26,7 +26,8 @@ def construct_file_url(filepath, repoDict):
     """Given a repository filepath extracted from the below methods, 
     return a (hopefully valid...) URL for the file
 
-    Note: filepath must be from root = repository root, not full local filepath!"""
+    Note: filepath must be from root = repository root, not full local filepath!
+    """
 
     baseURL = repoDict['url']
     if repoDict['ref']:
@@ -42,7 +43,8 @@ def construct_file_url(filepath, repoDict):
 def get_github_api_info(githubURL):
     """Get relevant info from the URL string itself and from an API request
     
-    Returns repoDict: dictionary containing repository owner, name, ref, ..."""
+    Returns repoDict: dictionary containing repository owner, name, ref, ...
+    """
     
     # Separate original URL into components
     components = githubURL.split('/')
