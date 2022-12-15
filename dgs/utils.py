@@ -1,12 +1,14 @@
 import ast
 import pandas as pd
+from typing import Any, Iterable, Callable
 from pandas.core.series import Series
+from pandas.core.groupby import GroupBy
 from sklearn.preprocessing import MultiLabelBinarizer
 
 import logging
 
 
-def ast_eval(s, alt_fcn=None):
+def ast_eval(s: Any, alt_fcn: Callable = None) -> Iterable | Any:
     """Evaluate strings as their properly-formated python AST equivalent,
     
     Wrapper around ast.literal_eval() to catch exceptions and return the 
@@ -22,7 +24,7 @@ def ast_eval(s, alt_fcn=None):
     except:
         if alt_fcn:
             try:
-                result = alt_fcn()
+                result = alt_fcn(s)
             except:
                 result = s
         else:
@@ -71,8 +73,8 @@ def count_unique_values(col: Series) -> Series:
     return counts
 
 
-def print_groupby(gb):
-    """Print pandas groupby object"""
+def print_groupby(gb: GroupBy):
+    """Pretty print pandas groupby object"""
 
     for key, item in gb:
         print(key)
