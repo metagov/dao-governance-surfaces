@@ -1,26 +1,12 @@
-import pandas as pd
-
-# =============================================================================
-# Basic coding based on keyword searching
-# =============================================================================
-CODING = {
-    'proposal': {'keywords': ['Proposal', 'Propose'],
-                 'topics': ['create', 'modify', 'execute', 'extend', 'cancel']}, 
-    'membership': {'keywords': ['Member', 'Role'],
-                   'topics': ['permission', 'responsibility', 'right', 'allow', 'require', 'forbid', 'authorize']},
-    'voting': {'keywords': ['Vote', 'Voting', 'Ballot'],
-              'topics': ['cast', 'delegate', 'change', 'tally', 'compute', 'referendum']} ,
-    'dispute_resolution': {'keywords': ['Dispute', 'Adjudication', 'Arbitrator'],
-                           'topics': ['juror', 'jury', 'evidence', 'ruling', 'appeal',
-                                      'create', 'compute', 'execute', 'reward', 'penalty', 'sortition']},
-    'reputation': {'keywords': ['Reputation'],
-                   'topics': ['reward', 'penalty', 'penalize']},
-    'election': {'keywords': ['Elect', 'Candidate'],
-                 'topics': ['']}
-}
+"""
+Code contract objects/parameters based on keyword search of names and comments
+"""
 
 
-def find_keywords_in_str(s, camelCase=False):
+from dgs import CODING
+
+
+def find_keywords_in_str(s: str, camelCase=False) -> list[str]:
     """Return list of coding keys in string s
     
     Keywords are capitalized
@@ -38,7 +24,7 @@ def find_keywords_in_str(s, camelCase=False):
     return kw
 
 
-def find_topics_in_str(s, kw, camelCase=False):
+def find_topics_in_str(s: str, kw: str, camelCase=False) -> list[str]:
     """Return list of topics under the keyword 'kw' in string s
     
     Keywords are capitalized
