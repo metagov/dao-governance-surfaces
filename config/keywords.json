@@ -1,0 +1,34 @@
+{
+    "categories": {
+        "proposal": {
+            "keywords": ["Proposal", "Propose"],
+            "topics": ["create", "modify", "execute", "extend", "cancel"]
+            }, 
+        "membership": {
+            "keywords": ["Member", "Role"],
+            "topics": [
+                "permit", "permission", "allow", "responsibility", "right",  
+                "require", "forbid", "authorize", "authorization"
+                ]
+            },
+        "voting": {
+            "keywords": ["Vote", "Voting", "Ballot"],
+            "topics": ["cast", "delegate", "change", "tally", "compute", "referendum"]
+            } ,
+        "dispute_resolution": {
+            "keywords": ["Dispute", "Adjudication", "Arbitrator"],
+            "topics": [
+                "juror", "jury", "evidence", "ruling", "appeal", "create", 
+                "compute", "execute", "reward", "penalty", "sortition"
+                ]
+            },
+        "reputation": {
+            "keywords": ["Reputation"],
+            "topics": ["reward", "penalty", "penalize"]
+            },
+        "election": {
+            "keywords": ["Elect", "Candidate"],
+            "topics": [""]
+            }
+    }
+}

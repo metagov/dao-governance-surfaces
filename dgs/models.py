@@ -10,7 +10,7 @@ from typing import Any
 from solidity_parser import parser
 
 from dgs import TMPDIR
-from dgs.comments import add_docstring_comments, add_inline_comments, remove_duplicate_comments_in_parameters
+from dgs.comments import CommentParser
 from dgs.keywords import find_keywords_in_obj, find_topics_in_obj
 
 ERRORMSG = 'error: could not parse'
@@ -334,9 +334,10 @@ def parse_contract_file(uri, debug=False):
     df_objects, df_parameters = extract_objects_and_parameters(sourceUnit)
     
     # Add comments to the DataFrames
-    df_objects, df_parameters = add_docstring_comments(lines, df_objects, df_parameters)
-    df_parameters = add_inline_comments(lines, df_parameters)
-    df_parameters = remove_duplicate_comments_in_parameters(df_objects, df_parameters)
+    cp = CommentParser()
+    df_objects, df_parameters = cp.add_docstring_comments(lines, df_objects, df_parameters)
+    df_parameters = cp.add_inline_comments(lines, df_parameters)
+    df_parameters = cp.remove_duplicate_comments_in_parameters(df_objects, df_parameters)
 
     # Add coding keywords/topics to the DataFrames
     df_objects['coding_keyword_search'] = df_objects.apply(lambda row: find_keywords_in_obj(row, df_parameters), axis=1)
