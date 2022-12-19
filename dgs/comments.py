@@ -14,7 +14,7 @@ class CommentParser:
     PATTERN_SEARCH_COMMENTBLOCK = re.compile(r'/\*\*(.+?)\*/$', re.DOTALL)
     PATTERN_SUB_ASTERISKS = r'^\s*\*\s*'
     LINE_COMMENT_MARKER = '//'
-    PATTERN_LINE_COMMENT = rf'{{{LINE_COMMENT_MARKER}}}+' # For re.sub or re.split
+    PATTERN_LINE_COMMENT = r'//+' # For re.sub or re.split
 
 
     def clean_comment_block(self, lines: list[str]) -> list[str]:
@@ -49,7 +49,7 @@ class CommentParser:
             endFlag = False
             while i >= 0 and not endFlag:
                 if lines[i].startswith(self.LINE_COMMENT_MARKER):
-                    lines_new.append(re.sub(rf'{{{self.LINE_COMMENT_MARKER}}}+', '', lines[i]).strip())
+                    lines_new.append(re.sub(self.PATTERN_LINE_COMMENT, '', lines[i]).strip())
                 else:
                     endFlag = True
                 i -= 1
@@ -70,7 +70,7 @@ class CommentParser:
         """
 
         split_str = re.split(self.PATTERN_LINE_COMMENT, line)
-        inline_comment = [split_str[-1]] if len(split_str) == 2 else ''
+        inline_comment = split_str[-1] if len(split_str) == 2 else ''
 
         return inline_comment
 
