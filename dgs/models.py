@@ -27,9 +27,9 @@ class ContractObject():
 
     id: str = field(init=False)
     contract: str
-    objectType: str
-    objectName: str
-    lineNumbers: tuple
+    object_type: str
+    object_name: str
+    line_numbers: tuple
     inheritance: list[str] = field(default_factory=list) # Applicable for ContractDefinitions
     modifiers: list[str] = field(default_factory=list) # Applicable for FunctionDefinitions
     values: list[str] = field(default_factory=list) # Applicable for EnumDefinitions (?)
@@ -40,7 +40,7 @@ class ContractObject():
 
     def __post_init__(self):
         """Create probably-unique identifier"""
-        self.id = f"{self.contract}.{self.objectName}@{self.lineNumbers[0]}"
+        self.id = f"{self.contract}.{self.object_name}@{self.line_numbers[0]}" # TODO: hash this, and include either URL or a random string
 
     @classmethod
     def from_ast_node(cls, ast_node, contractName):
@@ -49,22 +49,22 @@ class ContractObject():
         vars = {}
 
         vars['contract'] = contractName
-        objectType = ast_node['type']
-        vars['objectType'] = objectType
+        object_type = ast_node['type']
+        vars['object_type'] = object_type
         
-        assert objectType in cls.SUPPORTED_OBJECT_TYPES, "{objectType} type in {contractName} is not supported by ContractObject"
+        assert object_type in cls.SUPPORTED_OBJECT_TYPES, "{object_type} type in {contractName} is not supported by ContractObject"
         
-        if objectType == 'ContractDefinition':
-            vars['objectName'] = contractName
+        if object_type == 'ContractDefinition':
+            vars['object_name'] = contractName
             vars['inheritance'] = [b['baseName']['namePath'] for b in ast_node.get('baseContracts', [])]
         else:
             name = ast_node['name'] 
-            vars['objectName'] = name if not name.startswith('function()') else cls.NONAME_FUNC # Handle nameless delegator functions
+            vars['object_name'] = name if not name.startswith('function()') else cls.NONAME_FUNC # Handle nameless delegator functions
             vars['modifiers'] = cls.get_object_modifiers(ast_node)
             vars['values'] = cls.get_object_values(ast_node)
             vars['visibility'] = ast_node.get('visibility', '')
             
-        vars['lineNumbers'] = (ast_node['loc']['start']['line'], ast_node['loc']['end']['line'])
+        vars['line_numbers'] = (ast_node['loc']['start']['line'], ast_node['loc']['end']['line'])
 
         return cls(**vars)
     
@@ -95,54 +95,54 @@ class ContractObject():
     def to_row(self):
         """Return variables as pd.Series"""
         
-        objDict = {'object_name': self.objectName, 
+        objDict = {'object_name': self.object_name, 
                    'contract': self.contract, 
-                   'type': self.objectType, 
+                   'type': self.object_type, 
                    'inheritance': self.inheritance, 
                    'modifiers': self.modifiers, 
                    'values': self.values, 
                    'visibility': self.visibility, 
-                   'line_numbers': self.lineNumbers, 
+                   'line_numbers': self.line_numbers, 
                    'description': self.description
                   }
         return pd.Series(objDict).to_frame().T
 
     def __str__(self):
-        return f"{self.objectType} {self.objectName} ({self.contract})"
+        return f"{self.object_type} {self.object_name} ({self.contract})"
     
 
 @dataclass
 class ContractParameter():
 
     id: str = field(init=False)
-    parameterName: str
-    parentObject: ContractObject
-    lineNumber: int
+    parameter_name: str
+    parent_object: ContractObject
+    line_number: int
     visibility: str = field(default='') # Not always specified
-    parameterType: str = field(default='') # Determined using class method
-    typeCategory: str = field(default='') # Determined using class method
-    initialValue: Any = field(default=None)  # Determined using class method
+    parameter_type: str = field(default='') # Determined using class method
+    type_category: str = field(default='') # Determined using class method
+    initial_value: Any = field(default=None)  # Determined using class method
     description: str = field(default='') # Determined using comment parsing
 
     def __post_init__(self):
-        self.id = f"{self.parentObject.contract}.{str(self.parentObject)}.{self.parameterName}@{self.lineNumber}"
-        self.parentObject.add_parameter(self)
+        self.id = f"{self.parent_object.contract}.{self.parent_object.object_name}.{self.parameter_name}@{self.line_number}" # TODO: hash this, and include either URL or a random string
+        self.parent_object.add_parameter(self)
 
     @classmethod
-    def from_ast_node(cls, ast_node, parentObject):
+    def from_ast_node(cls, ast_node, parent_object):
         """Initialize parameter given portion of AST tree"""
         
         vars = {}
 
-        vars['parameterName'] = ast_node['name']
-        vars['parentObject'] = parentObject
+        vars['parameter_name'] = ast_node['name']
+        vars['parent_object'] = parent_object
 
-        vars['lineNumber'] = ast_node['loc']['start']['line']
+        vars['line_number'] = ast_node['loc']['start']['line']
         vars['visibility'] = ast_node.get('visibility', '')        
         
-        vars['parameterType'] = cls.get_parameter_type(ast_node)
-        vars['typeCategory'] = cls.get_parameter_type_category(ast_node)
-        vars['initialValue'] = cls.get_parameter_initialValue(ast_node)
+        vars['parameter_type'] = cls.get_parameter_type(ast_node)
+        vars['type_category'] = cls.get_parameter_type_category(ast_node)
+        vars['initial_value'] = cls.get_parameter_initial_value(ast_node)
         
         return cls(**vars)
     
@@ -177,10 +177,10 @@ class ContractParameter():
         return paramType
     
     @classmethod
-    def get_parameter_initialValue(cls, ast_node):
-        """Get parameter initialValue"""
+    def get_parameter_initial_value(cls, ast_node):
+        """Get parameter initial_value"""
 
-        value = ast_node.get('initialValue')
+        value = ast_node.get('initial_value')
         if value is not None:
             value = value.get('value', str(value))
 
@@ -212,20 +212,20 @@ class ContractParameter():
     def to_row(self):
         """Return variables as pd.Series"""
         
-        paramDict = {'parameter_name': self.parameterName, 
-                     'object_name': self.parentObject.objectName, 
-                     'contract': self.parentObject.contract, 
-                     'type': self.parameterType, 
-                     'type_category': self.typeCategory, 
-                     'line_number': self.lineNumber, 
-                     'initial_value': self.initialValue, 
+        paramDict = {'parameter_name': self.parameter_name, 
+                     'object_name': self.parent_object.object_name, # TODO: convert to object id and update corresponding use
+                     'contract': self.parent_object.contract, 
+                     'type': self.parameter_type, 
+                     'type_category': self.type_category, 
+                     'line_number': self.line_number, 
+                     'initial_value': self.initial_value, 
                      'visibility': self.visibility, 
                      'description': self.description
                     }
         return pd.Series(paramDict).to_frame().T
 
     def __str__(self):
-        return f"{self.parameterName}: (parameter of {str(self.parentObject)})"
+        return f"{self.parameter_name}: (parameter of {str(self.parent_object)})"
 
 
 # =============================================================================
