@@ -6,11 +6,7 @@ from json.decoder import JSONDecodeError
 from zipfile import ZipFile
 from io import BytesIO
 
-from dgs import DATADIR
-
-REPODICT_FILE = os.path.join(DATADIR, 'repodicts.csv')
-if not os.path.isfile(REPODICT_FILE):
-    open(REPODICT_FILE, 'a').close()
+from dgs import REPO_CONFIG_FILE, SAVEDIR
 
 HEADERS = {'User-Agent': 'metagov'}
 
@@ -22,28 +18,28 @@ def assert_api_rate_limit_not_exceeded(r):
         pass    
 
 
-def construct_file_url(filepath, repoDict):
+def construct_file_url(filepath, repoMetadata):
     """Given a repository filepath extracted from the below methods, 
     return a (hopefully valid...) URL for the file
 
     Note: filepath must be from root = repository root, not full local filepath!
     """
 
-    baseURL = repoDict['url']
-    if repoDict['ref']:
+    baseURL = repoMetadata['url']
+    if repoMetadata['ref']:
         baseURL = baseURL.split('/tree')[0]
-        branch = repoDict['ref']
+        branch = repoMetadata['ref']
     else:
-        branch = repoDict['default_branch']
+        branch = repoMetadata['default_branch']
     fileURL = baseURL + f'/blob/{branch}/' + filepath
     
     return fileURL
         
 
-def get_github_api_info(githubURL):
+def get_github_repo_metadata(githubURL):
     """Get relevant info from the URL string itself and from an API request
     
-    Returns repoDict: dictionary containing repository owner, name, ref, ...
+    Returns repoMetadata: dictionary containing repository owner, name, ref, ...
     """
     
     # Separate original URL into components
@@ -52,7 +48,7 @@ def get_github_api_info(githubURL):
     repoOwner = components[domainIndex+1]
     repoName = components[domainIndex+2]
     if domainIndex+2 != len(components) - 1:
-        ref = components[-1]
+        ref = components[domainIndex+3]
     else:
         ref = ''
     
@@ -61,7 +57,7 @@ def get_github_api_info(githubURL):
     r = requests.get(apiURL)
     assert_api_rate_limit_not_exceeded(r)
     r_base = r.json()
-    defaultBranch = r_base.get('default_branch', 'master') # May be main tho!
+    defaultBranch = r_base.get('default_branch', r_base.get('master', 'main')) 
     dateUpdated = ''
     if ref:
         # If version/tag specified
@@ -75,80 +71,82 @@ def get_github_api_info(githubURL):
         dateUpdated = r_base.get('updated_at')   
 
     # Define metadata
-    repoDict = {'owner': repoOwner,
-                'name': repoName,
-                'default_branch': defaultBranch,
-                'ref': ref,
-                'updated_at': dateUpdated,
-                'url': githubURL,
-                'id': f"{repoOwner}_{repoName}" + (f"_{ref}" if ref else f"_{defaultBranch}")
-                }
+    repoMetadata = {
+        'owner': repoOwner,
+        'name': repoName,
+        'default_branch': defaultBranch,
+        'ref': ref,
+        'updated_at': dateUpdated,
+        'url': githubURL,
+        'id': f"{repoOwner}_{repoName}" + (f"_{ref}" if ref else f"_{defaultBranch}")
+    }
     
-    return repoDict
+    return repoMetadata
 
 
-def get_zipball_api_url(repoDict):
+def get_zipball_api_url(repoMetadata):
     """Given repository information, construct url for zipball
     
     Returns zipball URL, for specific version of repo if specified
     """
     
-    # Construct zip URL
-    zipURL = f"https://api.github.com/repos/{repoDict['owner']}/{repoDict['name']}/zipball"
-    if repoDict['ref']:
-        zipURL = zipURL + '/' + repoDict['ref']
+    zipURL = f"https://api.github.com/repos/{repoMetadata['owner']}/{repoMetadata['name']}/zipball"
+    if repoMetadata['ref']:
+        zipURL = zipURL + '/' + repoMetadata['ref']
     
     return zipURL
     
 
-def download_repo(githubURL, subdir='contracts', ext='.sol'):
+def download_repo(githubURL: str, subdir: str = 'contracts'):
     """Download a specific type of file in a specific subdirectory from a GitHub repository zip file
     
     Arguments:
     - githubURL: valid GitHub URL to repository root (main or a specific version)
     - subdir: specific subdirectory (-ies) to extract content from. Can also be ''
-    - ext: specific file extension to keep items from. Can also be '' 
     
     Returns:
     - repoDir: path to local directory
-    - repoDict: see get_github_api_info
+    - repoMetadata: see get_github_repo_metadata
     
     NOTE: for ease of use with current repo structures of interest, subdir 
     matches ANY subdirectory that includes this folder name
     """
 
     assert 'github.com' in githubURL, "Download a repository from github.com only"
-    if ext is None:
-        ext = ''    
+    FILE_EXT = '.sol'  
     
     repoDir = ''
     
     # Read repo API info if previously collected
     # (To prevent unnecessary API calls)
     try:
-        repoDicts = pd.read_csv(REPODICT_FILE, index_col=False)
-        repoDicts.fillna('', inplace=True)
-        entries = repoDicts.loc[repoDicts['url'] == githubURL]
+        repoConfigs = pd.read_csv(REPO_CONFIG_FILE, index_col=False)
+        repoConfigs.fillna('', inplace=True)
+        entries = repoConfigs.loc[repoConfigs['url'] == githubURL]
         if len(entries.index) > 0:
-            repoDict = entries.iloc[0].to_dict()
+            repoMetadata = entries.iloc[0].to_dict()
         else:
-            repoDict = {}
+            repoMetadata = {}
     except (FileNotFoundError, pd.errors.EmptyDataError):
-        repoDict = {}
+        repoMetadata = {}
     
+    print(repoMetadata)
+
     try:
         # Get and save API info if not yet collected
-        if repoDict == {}:
-            repoDict = get_github_api_info(githubURL)
-            with open(REPODICT_FILE, 'a') as f:
-                if os.stat(REPODICT_FILE).st_size == 0:
-                    f.write(','.join(repoDict.keys()))
-                f.write('\n' + ','.join(repoDict.values()))
+        if repoMetadata == {}:
+            repoMetadata = get_github_repo_metadata(githubURL)
+            with open(REPO_CONFIG_FILE, 'a') as f:
+                if os.stat(REPO_CONFIG_FILE).st_size == 0:
+                    f.write(','.join(repoMetadata.keys()))
+                f.write('\n' + ','.join(repoMetadata.values()))
     
+        print("wrote metadata to csv")
+
         # If target directory does not yet exist, or if subdir is not in it, download and extract
-        # (To prevent unnecessary API calls; Does not overwrite existing files!)        
-        targetName = repoDict['id']
-        repoDir = os.path.join(TMPDIR, targetName)
+        # (To prevent unnecessary API calls, does not overwrite existing files!)        
+        targetName = repoMetadata['id']
+        repoDir = os.path.join(SAVEDIR, targetName)
         downloadFlag = False
         if not(os.path.isdir(repoDir)):
             downloadFlag = True
@@ -160,9 +158,11 @@ def download_repo(githubURL, subdir='contracts', ext='.sol'):
             if foundSubdir == False:
                 downloadFlag = True
         
+        print(f"downloadFlag: {downloadFlag}")
+
         if downloadFlag:
             # Get zip file
-            zipURL = get_zipball_api_url(repoDict)
+            zipURL = get_zipball_api_url(repoMetadata)
             r = requests.get(zipURL)
             assert_api_rate_limit_not_exceeded(r)
             zipFile = ZipFile(BytesIO(r.content))
@@ -173,15 +173,18 @@ def download_repo(githubURL, subdir='contracts', ext='.sol'):
             itemCount = 0
             if subdir:
                 baseItem = baseItem + subdir.strip('/') + '/'
+            print(subdir)
             for zi in zipItems:
                 item = zi.filename
-                if (f"/{subdir.strip('/')}/" in item) and item.endswith(ext):
-                    zipFile.extract(item, TMPDIR)
+                if (f"/{subdir.strip('/')}/" in item) and item.endswith(FILE_EXT):
+                    zipFile.extract(item, SAVEDIR)
                     itemCount += 1
             
-            # Rename directory to {owner}_{name}
+            print("extracted ZIP, now need to rename")
+
+            # Rename directory to specified repo name
             oldName = baseItem.split('/')[0]
-            repoDir_old = os.path.join(TMPDIR, oldName)
+            repoDir_old = os.path.join(SAVEDIR, oldName)
             if os.path.isdir(repoDir):
                 print(f"Overwriting existing repository {repoDir}...")
                 shutil.rmtree(repoDir)
@@ -195,13 +198,13 @@ def download_repo(githubURL, subdir='contracts', ext='.sol'):
         print(e)
         repoDir = ''
 
-    return repoDir, repoDict
+    return repoDir, repoMetadata
 
     
 if __name__ == "__main__":
     # Test with content in this repository
     testURL = 'https://github.com/notchia/dao-governance-surfaces'
     subdir = 'data/contracts'
-    repoDir, repoDict = download_repo(testURL, subdir=subdir)
+    repoDir, repoMetadata = download_repo(testURL, subdir=subdir)
     assert os.path.isdir(repoDir), "could not download/unzip file as specified"
     print(f"Successfully downloaded content from {testURL}")
