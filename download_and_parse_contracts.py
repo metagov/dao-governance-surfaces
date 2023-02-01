@@ -16,7 +16,7 @@ EXCLUDE_DIRS = ['lib', 'libs', 'libraries', 'test', 'tests', 'test-helpers', 'te
 EXCLUDE_FILES = ['SafeMath.sol', 'lib.sol', 'Migrations.sol']
 EXCLUDE_FILE_PATTERNS = [r'I?ERC\d+\.sol', r'I?EIP\d+\.sol', r'.*\.t\.sol']
 
-REPO_TABLE_PATH = 'repos.csv'
+REPO_TABLE_PATH = 'config/repos.csv'
 
 
 def parse_repo(projectDir, repoDict, projectLabel='', useDefaults=True, clean=False,
@@ -147,6 +147,8 @@ def download_and_parse(githubURL, subdir, label='', kwargs={}):
 def download_and_parse_all():
     df_contracts = import_contracts(REPO_TABLE_PATH)
     
+    print(df_contracts.columns)
+
     for i, row in df_contracts.iterrows():
         print(f"\n============ {row['project']} ============\n")
         kwargs = {c: row[c] for c in ['excludeDirs', 'includeDirs', 'excludeFiles', 'includeFiles'] if row[c]}
@@ -160,7 +162,7 @@ def download_and_parse_all():
             logging.exception(e)
 
 
-def main(url):
+def main(url: str = None):
     """Download and parse all contracts in the "contracts" directory of a GitHub repository
     
     url: fully specified URL to the root directory of a GitHub repository that 
@@ -168,7 +170,10 @@ def main(url):
     than main/master.
     """
 
-    download_and_parse(url, 'contracts')
+    if url:
+        download_and_parse(url, 'contracts')
+    else:
+        download_and_parse_all()
 
     
 if __name__ == '__main__':
