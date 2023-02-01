@@ -10,14 +10,14 @@ This repository contains the tools for collecting the parameters and functions t
 
 # Setup
 
-- Fork and clone this repository
+- Fork and clone this repository, then navigate to the root directory of the project
 - Set up a Python environment from `requirements.txt`. Example using conda:
 ```
 conda env create -n dgs python=3.10
 conda activate dgs
 pip install -r requirements.txt
 ```
-- Initialize the `solidity_parser` submodule: navigate to the project root directory and run `git submodule update --init`
+- Initialize the `solidity_parser` submodule: run `git submodule update --init`
 - Run `download_and_parse_contracts.py` to collect and parse a sample dataset
 - Run `factory_contracts.ipynb` to see the results!
 
