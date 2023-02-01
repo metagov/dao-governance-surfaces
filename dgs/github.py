@@ -91,6 +91,7 @@ def get_zipball_api_url(repoMetadata):
     """
     
     zipURL = f"https://api.github.com/repos/{repoMetadata['owner']}/{repoMetadata['name']}/zipball"
+    print(zipURL)
     if repoMetadata['ref']:
         zipURL = zipURL + '/' + repoMetadata['ref']
     

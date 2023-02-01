@@ -89,7 +89,7 @@ def parse_repo(projectDir, repoDict, projectLabel='', useDefaults=True, clean=Fa
         for fname in filenames:
             fpath = os.path.join(root, fname)
             try:
-                df_o, df_p = parse_contract_file(fpath, label=repoDict['name'])
+                df_o, df_p = parse_contract_file(fpath)#, label=repoDict['name'])
                 fileURL = construct_file_url(f"{subdir.strip('/')}/{fname}", repoDict)
                 df_o['url'] = fileURL
                 df_p['url'] = fileURL
@@ -103,11 +103,12 @@ def parse_repo(projectDir, repoDict, projectLabel='', useDefaults=True, clean=Fa
     # Save parsed data to files
     if (len(df_objects.index) > 0):
         df_objects['project'] = projectLabel
+        df_parameters['project'] = projectLabel
         df_objects['repo_update_datetime'] = repoDict['updated_at']
         df_objects['repo_version'] = repoDict['ref']
         df_objects['repo_url'] = repoDict['url']
-        df_objects.drop(columns=['line_numbers']).reset_index().to_csv(objectsFile)
-        df_parameters.drop(columns=['line_number']).reset_index().to_csv(parametersFile)
+        df_objects.reset_index().drop(columns=['line_numbers', 'index']).to_csv(objectsFile)
+        df_parameters.reset_index().drop(columns=['line_number', 'index']).to_csv(parametersFile)
     
     logging.info(f"Summary for {projectLabel}: parsed {fileCount} files")
     if len(errorFiles) > 0:
@@ -141,7 +142,7 @@ def download_and_parse(githubURL, subdir, label='', kwargs={}):
     if label == '':
         label = repoDict['id']
     parse_repo(repoDir, repoDict, projectLabel=label, **kwargs)
-    
+
 
 def download_and_parse_all():
     df_contracts = import_contracts(REPO_TABLE_PATH)
@@ -160,6 +161,13 @@ def download_and_parse_all():
 
 
 def main(url):
+    """Download and parse all contracts in the "contracts" directory of a GitHub repository
+    
+    url: fully specified URL to the root directory of a GitHub repository that 
+    contains smart contracts in a "contracts" folder. It can be to a branch other 
+    than main/master.
+    """
+
     download_and_parse(url, 'contracts')
 
     
