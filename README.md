@@ -4,7 +4,7 @@ Extract and label the "governance surface" of a set of DAO smart contracts.
 
 # Simple summary
 
-An organization's governance surfce is the set of available actions through which it can adapt itself. In DAOs specifically, many of these actions are circumscribed by a smart contract which contains a set of parameters and the mechanisms for modifying them. 
+An organization's **governance surface** is the set of available actions through which it can adapt itself. In DAOs specifically, many of these actions are circumscribed by a smart contract, which contains a set of parameters and the mechanisms for modifying these parameters. 
 
 This repository contains the tools for collecting the parameters and functions that define the governance surface into a series of linked objects and tables, including metadata about who is allowed to view a parameter or perform an action and keyword labels based on the variable names and plain-text comments in the code.
 
