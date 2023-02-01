@@ -8,7 +8,18 @@ An organization's **governance surface** is the set of available actions through
 
 This repository contains the tools for collecting the parameters and functions that define the governance surface into a series of linked objects and tables, including metadata about who is allowed to view a parameter or perform an action and keyword labels based on the variable names and plain-text comments in the code.
 
-For a demonstration of how to use this code, set up the Python environment using `requirements.txt`, run `download_and_parse_contracts.py`, then run `factory_contracts.ipynb`
+# Setup
+
+- Fork and clone this repository
+- Set up a Python environment from `requirements.txt`. Example using conda:
+```
+conda env create -n dgs python=3.10
+conda activate dgs
+pip install -r requirements.txt
+```
+- Initialize the `solidity_parser` submodule: navigate to the project root directory and run `git submodule update --init`
+- Run `download_and_parse_contracts.py` to collect and parse a sample dataset
+- Run `factory_contracts.ipynb` to see the results!
 
 # Implementation
 
