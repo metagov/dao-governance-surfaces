@@ -17,8 +17,9 @@ conda env create -n dgs python=3.10
 conda activate dgs
 pip install -r requirements.txt
 ```
-- Initialize the `solidity_parser` submodule: run `git submodule update --init`
-- Run `download_and_parse_contracts.py` to collect and parse a sample dataset
+- Run `git submodule update --init --recursive` to initialize the `solidity_parser` submodule
+- Run `pip install -r solidity-parser/requirements.txt` to install the additional requirements of the `solidity_parser` library
+- Run `python download_and_parse_contracts.py` to collect and parse a sample dataset
 - Run `factory_contracts.ipynb` to see the results!
 
 # Implementation
