@@ -50,7 +50,7 @@ def find_keywords_in_obj(obj, df_params):
 
     kw_params = []    
     try:
-        params = df_params.loc[df_params['object_name'] == obj['object_name']]
+        params = df_params.loc[df_params['object_id'] == obj['id']]
         for i, param in params.iterrows():
             kw_params = kw_params + find_keywords_in_str(param['parameter_name'], camelCase=True)
             kw_params = kw_params + find_keywords_in_str(param['description'])

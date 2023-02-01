@@ -5,6 +5,7 @@ matplotlib
 networkx
 pandas
 pytest
+pytest-datafiles
 requests
 scikit-learn
 scipy

@@ -90,12 +90,13 @@ class ContractObject():
         return values
 
     def add_parameter(self, paramObj):
-        self.parameters.append(paramObj)
+        self.parameters.append(paramObj.id)
 
     def to_row(self):
         """Return variables as pd.Series"""
         
-        objDict = {'object_name': self.object_name, 
+        objDict = {'id': self.id,
+                   'object_name': self.object_name, 
                    'contract': self.contract, 
                    'type': self.object_type, 
                    'inheritance': self.inheritance, 
@@ -103,7 +104,8 @@ class ContractObject():
                    'values': self.values, 
                    'visibility': self.visibility, 
                    'line_numbers': self.line_numbers, 
-                   'description': self.description
+                   'description': self.description,
+                   'parameters': self.parameters
                   }
         return pd.Series(objDict).to_frame().T
 
@@ -212,8 +214,9 @@ class ContractParameter():
     def to_row(self):
         """Return variables as pd.Series"""
         
-        paramDict = {'parameter_name': self.parameter_name, 
-                     'object_name': self.parent_object.object_name, # TODO: convert to object id and update corresponding use
+        paramDict = {'id': self.id,
+                     'parameter_name': self.parameter_name, 
+                     'object_id': self.parent_object.id, # TODO: convert to object id and update corresponding use
                      'contract': self.parent_object.contract, 
                      'type': self.parameter_type, 
                      'type_category': self.type_category, 

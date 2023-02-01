@@ -243,7 +243,7 @@ class CommentParser:
 
             # Add parameter descriptions to parameters
             for param_name, param_description in comment_data.get('param', {}).items():
-                index = df_p.loc[(df_p['object_name']==row['object_name']) &
+                index = df_p.loc[(df_p['object_id']==row['id']) &
                                 (df_p['parameter_name']==param_name)].index[0]
                 df_p.iat[index, df_p.columns.get_loc('description')] = param_description
 
@@ -286,7 +286,7 @@ class CommentParser:
         
         for i, row in df_parameters.iterrows():
             # Get parent object's comments
-            index = df_o.loc[(df_o['object_name']==row['object_name']) &
+            index = df_o.loc[(df_o['id']==row['object_id']) &
                             (df_o['contract']==row['contract'])].index[0]
             object_fullComment = df_o.iat[index, df_o.columns.get_loc('full_comment')]
             object_description = df_o.iat[index, df_o.columns.get_loc('description')]

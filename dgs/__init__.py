@@ -3,7 +3,7 @@ import sys
 import json
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 sys.path.append("solidity-parser")
 

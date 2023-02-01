@@ -1,0 +1,19 @@
+project,url,repoURL,subdir,excludeDirs,includeDirs,excludeFiles,includeFiles,notes
+Aragon - Aragon Court,https://github.com/aragon/aragon-court,https://github.com/aragon/aragon-court/tree/v1.1.3,contracts,,,,,
+Aragon - Aragon Govern,https://github.com/aragon/govern,https://github.com/aragon/govern/tree/v1.0.0-beta.12,contracts,,,,,In beta (pre-audit). Contracts are spread out across packages
+Colony - Colony Network,https://github.com/JoinColony/colonyNetwork,https://github.com/JoinColony/colonyNetwork/tree/elwss2,contracts,"['ens', 'patriciaTree']",,,,
+DAOstack - Alchemy,https://github.com/daostack/alchemy-monorepo,https://github.com/daostack/alchemy-monorepo/tree/1.0.7,contracts,,,,,
+Compound - Governor Bravo,,https://github.com/notchia/metagov,data/contracts/Compound,,,,,
+Gnosis - Gnosis Safe,https://github.com/gnosis/safe-contracts,https://github.com/gnosis/safe-contracts/tree/v1.3.0-libs.0,contracts,,,,['GnosisSafe.sol'],
+MakerDAO - Maker Protocol (Auth),https://github.com/dapphub/ds-auth,https://github.com/dapphub/ds-auth,src,,,,,
+MakerDAO - Maker Protocol (Chief),https://github.com/dapphub/ds-chief,https://github.com/dapphub/ds-chief,src,,,,,
+MakerDAO - Maker Protocol (Guard),https://github.com/dapphub/ds-guard,https://github.com/dapphub/ds-guard,src,,,,,
+MakerDAO - Maker Protocol (Pause),https://github.com/dapphub/ds-pause,https://github.com/dapphub/ds-pause,src,,,,,
+MakerDAO - Maker Protocol (Roles),https://github.com/dapphub/ds-roles,https://github.com/dapphub/ds-roles,src,,,,,
+MakerDAO - Maker Protocol (Spell),https://github.com/dapphub/ds-spell,https://github.com/dapphub/ds-spell,src,,,,,
+MakerDAO - Maker Protocol (Prism),https://github.com/dapphub/ds-prism,https://github.com/dapphub/ds-prism,src,,,,,Not sure if ever used...
+Moloch - Moloch v1,https://github.com/MolochVentures/moloch,https://github.com/MolochVentures/moloch,v1_contracts,,,,,
+Moloch - Moloch v2,https://github.com/MolochVentures/moloch,https://github.com/MolochVentures/moloch,contracts,['v1_contracts'],,,,
+OpenLaw - Tribute,https://github.com/openlawteam/tribute-contracts,https://github.com/openlawteam/tribute-contracts/tree/v2.3.4,contracts,['companion'],,,,
+OpenZeppelin - Governance,,https://github.com/OpenZeppelin/openzeppelin-contracts/tree/v4.4.2,contracts/governance,,,,,
+Kleros - Kleros,https://github.com/kleros/kleros,https://github.com/kleros/kleros,contracts/kleros,,,,,
