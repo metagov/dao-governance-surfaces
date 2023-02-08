@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ```
 - Run `git submodule update --init --recursive` to initialize the `solidity_parser` submodule
 - Run `pip install -r solidity-parser/requirements.txt` to install the additional requirements of the `solidity_parser` library
-- Run `python download_and_parse_contracts.py` to collect and parse a sample dataset
+- Run `python download_and_parse_contracts.py` to collect and parse data from a prepopulated list of DAO factory contract repositorys. Or, provide your own GitHub repo url to analyze a particular repository: `python download_and_parse_contracts.py [url]`
 - Run `factory_contracts.ipynb` to see the results!
 
 # Implementation
