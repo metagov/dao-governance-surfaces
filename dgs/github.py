@@ -5,15 +5,17 @@ import pandas as pd
 from json.decoder import JSONDecodeError
 from zipfile import ZipFile
 from io import BytesIO
+from pprint import pprint
 
 from dgs import REPO_CONFIG_FILE, SAVEDIR
+
 
 HEADERS = {'User-Agent': 'metagov'}
 
 
 def assert_api_rate_limit_not_exceeded(r):
     try:
-        assert 'API rate limit exceeded' not in r.json()['message'], 'API rate limit exceeded'
+        assert 'API rate limit exceeded' not in r.json()['message'], 'WARNING: API rate limit exceeded'
     except (TypeError, KeyError, JSONDecodeError):
         pass    
 
@@ -43,15 +45,15 @@ def get_github_repo_metadata(githubURL):
     """
     
     # Separate original URL into components
-    components = githubURL.split('/')
+    components = githubURL.strip('/').split('/')
     domainIndex = [i for (i, s) in enumerate(components) if 'github.com' in s][0]
     repoOwner = components[domainIndex+1]
     repoName = components[domainIndex+2]
     if domainIndex+2 != len(components) - 1:
-        ref = components[domainIndex+3]
+        ref = components[-1]
     else:
         ref = ''
-    
+
     # For reference, get the date that the repository was most recently updated
     apiURL = f"https://api.github.com/repos/{repoOwner}/{repoName}"
     r = requests.get(apiURL)
@@ -90,10 +92,11 @@ def get_zipball_api_url(repoMetadata):
     Returns zipball URL, for specific version of repo if specified
     """
     
-    zipURL = f"https://api.github.com/repos/{repoMetadata['owner']}/{repoMetadata['name']}/zipball"
-    print(zipURL)
-    if repoMetadata['ref']:
-        zipURL = zipURL + '/' + repoMetadata['ref']
+    version = repoMetadata['ref'] if repoMetadata['ref'] else repoMetadata['defaultBranch']
+
+    zipURL = f"https://github.com/{repoMetadata['owner']}/{repoMetadata['name']}/zipball/{version}"
+
+    print(f"zip URL: {zipURL}")
     
     return zipURL
     
@@ -131,18 +134,19 @@ def download_repo(githubURL: str, subdir: str = 'contracts'):
     except (FileNotFoundError, pd.errors.EmptyDataError):
         repoMetadata = {}
     
-    print(repoMetadata)
-
     try:
         # Get and save API info if not yet collected
         if repoMetadata == {}:
+            print("getting metadata from api and saving to repodicts.csv")
             repoMetadata = get_github_repo_metadata(githubURL)
             with open(REPO_CONFIG_FILE, 'a') as f:
                 if os.stat(REPO_CONFIG_FILE).st_size == 0:
                     f.write(','.join(repoMetadata.keys()))
                 f.write('\n' + ','.join(repoMetadata.values()))
-    
-        print("wrote metadata to csv")
+        else:
+            print("using metadata from repodicts.csv")
+        
+        pprint(repoMetadata)
 
         # If target directory does not yet exist, or if subdir is not in it, download and extract
         # (To prevent unnecessary API calls, does not overwrite existing files!)        
@@ -158,10 +162,10 @@ def download_repo(githubURL: str, subdir: str = 'contracts'):
                     foundSubdir = True
             if foundSubdir == False:
                 downloadFlag = True
-        
-        print(f"downloadFlag: {downloadFlag}")
 
         if downloadFlag:
+            print("downloading repo")
+
             # Get zip file
             zipURL = get_zipball_api_url(repoMetadata)
             r = requests.get(zipURL)
@@ -174,7 +178,7 @@ def download_repo(githubURL: str, subdir: str = 'contracts'):
             itemCount = 0
             if subdir:
                 baseItem = baseItem + subdir.strip('/') + '/'
-            print(subdir)
+            print(f"Subdirectory: {subdir}")
             for zi in zipItems:
                 item = zi.filename
                 if (f"/{subdir.strip('/')}/" in item) and item.endswith(FILE_EXT):
