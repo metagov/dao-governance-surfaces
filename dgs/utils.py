@@ -69,15 +69,11 @@ def load_results_from_files(dir: str = 'tmp'):
             elif filename.startswith('contract_parameters'):
                 all_params.append(_df)
 
-    print(_df.head().to_string())
-
     # Join into a single DF for each of objects and parameters
     df_objects = pd.concat(all_objects).set_index('id')
     df_params = pd.concat(all_params).set_index('id')
 
     # Load child parameter names into df_objects for ease of analysis
-    print(df_objects.head().to_string())
-    print(df_params.head().to_string())
     df_objects['parameters_names'] = df_objects['parameters'].apply(
         lambda values: [df_params.at[v, 'parameter_name'] for v in values] if isinstance(values, list) else np.nan
     )
