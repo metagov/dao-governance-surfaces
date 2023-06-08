@@ -96,7 +96,7 @@ def get_zipball_api_url(repoMetadata):
 
     zipURL = f"https://github.com/{repoMetadata['owner']}/{repoMetadata['name']}/zipball/{version}"
 
-    print(zipURL)
+    print(f"zip URL: {zipURL}")
     
     return zipURL
     
@@ -178,7 +178,7 @@ def download_repo(githubURL: str, subdir: str = 'contracts'):
             itemCount = 0
             if subdir:
                 baseItem = baseItem + subdir.strip('/') + '/'
-            print(subdir)
+            print(f"Subdirectory: {subdir}")
             for zi in zipItems:
                 item = zi.filename
                 if (f"/{subdir.strip('/')}/" in item) and item.endswith(FILE_EXT):
