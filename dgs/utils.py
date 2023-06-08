@@ -70,8 +70,8 @@ def load_results_from_files(dir: str = 'tmp'):
                 all_params.append(_df)
 
     # Join into a single DF for each of objects and parameters
-    df_objects = pd.concat(all_objects, axis=1).set_index('id')
-    df_params = pd.concat(all_params, axis=1).set_index('id')
+    df_objects = pd.concat(all_objects).set_index('id')
+    df_params = pd.concat(all_params).set_index('id')
 
     # Load child parameter names into df_objects for ease of analysis
     df_objects['parameters_names'] = df_objects['parameters'].apply(
